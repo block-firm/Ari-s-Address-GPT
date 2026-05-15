@@ -413,8 +413,7 @@
 
   <script>
     // ── CONFIG ────────────────────────────────────────────────────────────────
-    const AUTH_ID    = '4945bd7c-f6ce-6bbb-937e-3b0ea2049310';
-    const AUTH_TOKEN = '9yNAGIV5d7ppzycOl6ds';
+    const EMBEDDED_KEY    = '277728335154582909';
     // ─────────────────────────────────────────────────────────────────────────
 
     const input     = document.getElementById('addressInput');
@@ -432,7 +431,7 @@
       showLoading();
 
       try {
-        const url = `https://us-enrichment.api.smarty.com/lookup/search/secondary?street=${encodeURIComponent(street)}&auth-id=${AUTH_ID}&auth-token=${AUTH_TOKEN}`;
+        const url = `https://us-enrichment.api.smarty.com/lookup/search/secondary?street=${encodeURIComponent(street)}&key=${EMBEDDED_KEY}`;
         const res  = await fetch(url);
 
         if (!res.ok) {
