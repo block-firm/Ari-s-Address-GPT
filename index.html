@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ari's Address GPT</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --surface: #161616;
+      --surface-2: #1e1e1e;
+      --border: #2a2a2a;
+      --border-hover: #3a3a3a;
+      --accent: #7c6aff;
+      --accent-soft: rgba(124, 106, 255, 0.12);
+      --accent-glow: rgba(124, 106, 255, 0.25);
+      --text: #e8e8e8;
+      --text-muted: #6b6b6b;
+      --text-dim: #9a9a9a;
+      --success: #4ade80;
+      --error: #f87171;
+      --font: 'Sora', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 20px 80px;
+    }
+
+    /* subtle grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+
+    .logo-text span {
+      color: var(--accent);
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      padding-left: 42px;
+      font-weight: 300;
+    }
+
+    /* Search Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: border-color 0.2s;
+    }
+
+    .card:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-soft), 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .input-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-family: var(--font);
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]::placeholder { color: var(--text-muted); }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    button.search-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 22px;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    button.search-btn:hover { opacity: 0.88; box-shadow: 0 4px 24px var(--accent-glow); }
+    button.search-btn:active { transform: scale(0.97); }
+    button.search-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Results */
+    .results-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    .results-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .results-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .results-address {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+
+    .badge {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(124, 106, 255, 0.2);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: var(--mono);
+    }
+
+    .units-grid {
+      padding: 20px 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    .units-grid::-webkit-scrollbar { width: 4px; }
+    .units-grid::-webkit-scrollbar-track { background: transparent; }
+    .units-grid::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 4px; }
+
+    .unit-chip {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      animation: chipIn 0.2s ease both;
+    }
+
+    .unit-chip:hover {
+      border-color: var(--accent);
+      color: var(--text);
+      background: var(--accent-soft);
+    }
+
+    @keyframes chipIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .results-footer {
+      padding: 14px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    button.export-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-dim);
+      font-family: var(--font);
+      font-size: 12px;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button.export-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    /* State: loading */
+    .loading-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* State: error */
+    .error-card {
+      background: var(--surface);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .error-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--error);
+      flex-shrink: 0;
+    }
+
+    .error-text {
+      font-size: 13px;
+      color: var(--error);
+    }
+
+    /* State: empty / no results */
+    .empty-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .empty-icon { font-size: 28px; }
+
+    .empty-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    /* Footer */
+    .page-footer {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">🏢</div>
+        <div class="logo-text">Ari's Address <span>GPT</span></div>
+      </div>
+      <div class="subtitle">Secondary address lookup — powered by Smarty</div>
+    </div>
+
+    <div class="card">
+      <div class="input-label">Property Address</div>
+      <div class="input-row">
+        <input
+          type="text"
+          id="addressInput"
+          placeholder="e.g. 6170 Reseda Blvd Tarzana CA"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="search-btn" id="searchBtn" onclick="lookupAddress()">Search</button>
+      </div>
+      <div class="hint">Enter a full street address including city and state</div>
+    </div>
+
+    <div id="resultArea"></div>
+
+    <div class="page-footer">Internal tool · Data via Smarty US Secondary Address API</div>
+
+  </div>
+
+  <script>
+    // ── CONFIG ────────────────────────────────────────────────────────────────
+    const AUTH_ID    = '4945bd7c-f6ce-6bbb-937e-3b0ea2049310';
+    const AUTH_TOKEN = '9yNAGIV5d7ppzycOl6ds';
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const input     = document.getElementById('addressInput');
+    const btn       = document.getElementById('searchBtn');
+    const resultArea = document.getElementById('resultArea');
+
+    // Allow Enter key to trigger search
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') lookupAddress(); });
+
+    async function lookupAddress() {
+      const street = input.value.trim();
+      if (!street) { input.focus(); return; }
+
+      btn.disabled = true;
+      showLoading();
+
+      try {
+        const url = `https://us-enrichment.api.smarty.com/lookup/search/secondary?street=${encodeURIComponent(street)}&auth-id=${AUTH_ID}&auth-token=${AUTH_TOKEN}`;
+        const res  = await fetch(url);
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err?.errors?.[0]?.message || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        if (!data || data.length === 0) {
+          showEmpty();
+          return;
+        }
+
+        const record = data[0];
+
+        // If response has no secondaries array, show count-only result
+        if (!record.secondaries || record.secondaries.length === 0) {
+          showEmpty(record);
+          return;
+        }
+
+        showResults(record);
+
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function showLoading() {
+      resultArea.innerHTML = `
+        <div class="loading-card">
+          <div class="spinner"></div>
+          <div class="loading-text">Looking up secondary addresses…</div>
+        </div>`;
+    }
+
+    function showError(msg) {
+      resultArea.innerHTML = `
+        <div class="error-card">
+          <div class="error-dot"></div>
+          <div class="error-text">${msg || 'Something went wrong. Check your address and try again.'}</div>
+        </div>`;
+    }
+
+    function showEmpty(record) {
+      const count = record?.count ?? 0;
+      resultArea.innerHTML = `
+        <div class="empty-card">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-text">${count > 0
+            ? `${count} units found but detailed unit data isn't available for this address.`
+            : 'No secondary addresses found for this property.'
+          }</div>
+        </div>`;
+    }
+
+    function showResults(record) {
+      const addr    = record.matched_address;
+      const units   = record.secondaries;
+      const count   = units.length;
+
+      const chips = units.map((u, i) => {
+        const label = [u.secondary_designator, u.secondary_number].filter(Boolean).join(' ') || u.secondary || '—';
+        return `<div class="unit-chip" style="animation-delay:${Math.min(i * 15, 300)}ms">${label}</div>`;
+      }).join('');
+
+      resultArea.innerHTML = `
+        <div class="results-card">
+          <div class="results-header">
+            <div class="results-meta">
+              <div class="results-title">Secondary Addresses</div>
+              <div class="results-address">${addr.street}, ${addr.city}, ${addr.state} ${addr.zipcode}</div>
+            </div>
+            <div class="badge">${count} unit${count !== 1 ? 's' : ''}</div>
+          </div>
+          <div class="units-grid">${chips}</div>
+          <div class="results-footer">
+            <button class="export-btn" onclick="exportCSV()">
+              ↓ Export CSV
+            </button>
+          </div>
+        </div>`;
+
+      // Store for export
+      window._lastResults = { record };
+    }
+
+    function exportCSV() {
+      const { record } = window._lastResults;
+      const addr  = record.matched_address;
+      const units = record.secondaries;
+
+      const header = 'Street,Unit Designator,Unit Number,City,State,Zipcode';
+      const rows   = units.map(u => {
+        const des = (u.secondary_designator || '').replace(/,/g, '');
+        const num = (u.secondary_number    || '').replace(/,/g, '');
+        return `"${addr.street}","${des}","${num}","${addr.city}","${addr.state}","${addr.zipcode}"`;
+      });
+
+      const csv  = [header, ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `units_${addr.street.replace(/\s+/g, '_')}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
