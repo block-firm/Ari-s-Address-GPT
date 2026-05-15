@@ -3,25 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ari's Address GPT</title>
+  <title>JackSearch — Block Law</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --bg: #0d0d0d;
-      --surface: #161616;
-      --surface-2: #1e1e1e;
-      --border: #2a2a2a;
-      --border-hover: #3a3a3a;
-      --accent: #7c6aff;
-      --accent-soft: rgba(124, 106, 255, 0.12);
-      --accent-glow: rgba(124, 106, 255, 0.25);
-      --text: #e8e8e8;
-      --text-muted: #6b6b6b;
-      --text-dim: #9a9a9a;
-      --success: #4ade80;
-      --error: #f87171;
-      --font: 'Sora', sans-serif;
-      --mono: 'JetBrains Mono', monospace;
+      --bg:           #001a26;
+      --surface:      #002233;
+      --surface-2:    #002d3f;
+      --border:       #0a3a50;
+      --border-hover: #0f4d6a;
+      --accent:       #ff2c00;
+      --accent-dark:  #a61d00;
+      --accent-soft:  rgba(255, 44, 0, 0.10);
+      --accent-glow:  rgba(255, 44, 0, 0.22);
+      --blue:         #00709d;
+      --blue-soft:    rgba(0, 112, 157, 0.15);
+      --text:         #e8eef2;
+      --text-muted:   #4a7a96;
+      --text-dim:     #7aaec4;
+      --error:        #ff5a3c;
+      --font:         'Sora', sans-serif;
+      --mono:         'JetBrains Mono', monospace;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -37,16 +39,26 @@
       padding: 48px 20px 80px;
     }
 
-    /* subtle grid background */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+        linear-gradient(rgba(0, 112, 157, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 112, 157, 0.06) 1px, transparent 1px);
       background-size: 40px 40px;
-      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -120px;
+      left: -120px;
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, rgba(255,44,0,0.07) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
     }
@@ -67,50 +79,51 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Header */
-    .header {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    .header { display: flex; flex-direction: column; gap: 6px; }
+
+    .logo { display: flex; align-items: center; gap: 12px; }
+
+    .logo img {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 10px var(--accent-glow));
     }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .logo-text-block { display: flex; flex-direction: column; gap: 2px; }
 
-    .logo-icon {
-      width: 32px;
-      height: 32px;
-      background: var(--accent);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      box-shadow: 0 0 16px var(--accent-glow);
-    }
-
-    .logo-text {
-      font-size: 20px;
+    .logo-name {
+      font-size: 22px;
       font-weight: 600;
-      letter-spacing: -0.3px;
+      letter-spacing: -0.4px;
       color: var(--text);
+      line-height: 1;
     }
 
-    .logo-text span {
-      color: var(--accent);
+    .logo-name span { color: var(--accent); }
+
+    .logo-company {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue);
     }
 
     .subtitle {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-muted);
-      padding-left: 42px;
+      padding-left: 50px;
       font-weight: 300;
     }
 
-    /* Search Card */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, var(--accent-dark), var(--blue), transparent);
+      opacity: 0.4;
+      margin: -8px 0;
+    }
+
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -123,22 +136,19 @@
     }
 
     .card:focus-within {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent-soft), 0 8px 32px rgba(0,0,0,0.4);
+      border-color: var(--accent-dark);
+      box-shadow: 0 0 0 1px var(--accent-soft), 0 8px 32px rgba(0,0,0,0.5);
     }
 
     .input-label {
       font-size: 11px;
       font-weight: 500;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.09em;
       text-transform: uppercase;
       color: var(--text-muted);
     }
 
-    .input-row {
-      display: flex;
-      gap: 10px;
-    }
+    .input-row { display: flex; gap: 10px; }
 
     input[type="text"] {
       flex: 1;
@@ -168,23 +178,19 @@
       padding: 12px 22px;
       font-family: var(--font);
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
       white-space: nowrap;
       box-shadow: 0 4px 16px var(--accent-glow);
     }
 
-    button.search-btn:hover { opacity: 0.88; box-shadow: 0 4px 24px var(--accent-glow); }
+    button.search-btn:hover { background: #e82700; box-shadow: 0 4px 24px var(--accent-glow); }
     button.search-btn:active { transform: scale(0.97); }
-    button.search-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    button.search-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
-    .hint {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
+    .hint { font-size: 12px; color: var(--text-muted); }
 
-    /* Results */
     .results-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -202,32 +208,20 @@
       background: var(--surface-2);
     }
 
-    .results-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
+    .results-meta { display: flex; flex-direction: column; gap: 3px; }
 
-    .results-title {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-    }
+    .results-title { font-size: 13px; font-weight: 500; color: var(--text); }
 
-    .results-address {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-family: var(--mono);
-    }
+    .results-address { font-size: 12px; color: var(--text-muted); font-family: var(--mono); }
 
     .badge {
       background: var(--accent-soft);
       color: var(--accent);
-      border: 1px solid rgba(124, 106, 255, 0.2);
+      border: 1px solid rgba(255, 44, 0, 0.25);
       border-radius: 20px;
       padding: 4px 12px;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 600;
       font-family: var(--mono);
     }
 
@@ -257,9 +251,9 @@
     }
 
     .unit-chip:hover {
-      border-color: var(--accent);
+      border-color: var(--blue);
       color: var(--text);
-      background: var(--accent-soft);
+      background: var(--blue-soft);
     }
 
     @keyframes chipIn {
@@ -278,7 +272,7 @@
       background: transparent;
       border: 1px solid var(--border);
       border-radius: 8px;
-      color: var(--text-dim);
+      color: var(--text-muted);
       font-family: var(--font);
       font-size: 12px;
       padding: 7px 14px;
@@ -290,12 +284,11 @@
     }
 
     button.export-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-soft);
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--blue-soft);
     }
 
-    /* State: loading */
     .loading-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -319,15 +312,11 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .loading-text {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
+    .loading-text { font-size: 13px; color: var(--text-muted); }
 
-    /* State: error */
     .error-card {
       background: var(--surface);
-      border: 1px solid rgba(248, 113, 113, 0.3);
+      border: 1px solid rgba(255, 90, 60, 0.3);
       border-radius: 16px;
       padding: 20px 24px;
       display: flex;
@@ -336,20 +325,9 @@
       animation: fadeUp 0.3s ease both;
     }
 
-    .error-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--error);
-      flex-shrink: 0;
-    }
+    .error-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--error); flex-shrink: 0; }
+    .error-text { font-size: 13px; color: var(--error); }
 
-    .error-text {
-      font-size: 13px;
-      color: var(--error);
-    }
-
-    /* State: empty / no results */
     .empty-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -363,19 +341,14 @@
     }
 
     .empty-icon { font-size: 28px; }
+    .empty-text { font-size: 13px; color: var(--text-muted); text-align: center; }
 
-    .empty-text {
-      font-size: 13px;
-      color: var(--text-muted);
-      text-align: center;
-    }
-
-    /* Footer */
     .page-footer {
       font-size: 11px;
       color: var(--text-muted);
       text-align: center;
       margin-top: 8px;
+      letter-spacing: 0.02em;
     }
   </style>
 </head>
@@ -384,11 +357,16 @@
 
     <div class="header">
       <div class="logo">
-        <div class="logo-icon">🏢</div>
-        <div class="logo-text">Ari's Address <span>GPT</span></div>
+        <img src="./circle-B-alone.png" alt="Block Law" />
+        <div class="logo-text-block">
+          <div class="logo-name">Jack<span>Search</span></div>
+          <div class="logo-company">Block Law</div>
+        </div>
       </div>
       <div class="subtitle">Secondary address lookup — powered by Smarty</div>
     </div>
+
+    <div class="divider"></div>
 
     <div class="card">
       <div class="input-label">Property Address</div>
@@ -407,20 +385,19 @@
 
     <div id="resultArea"></div>
 
-    <div class="page-footer">Internal tool · Data via Smarty US Secondary Address API</div>
+    <div class="page-footer">Block Law · Internal Tool · Data via Smarty US Secondary Address API</div>
 
   </div>
 
   <script>
-    // ── CONFIG ────────────────────────────────────────────────────────────────
-    const EMBEDDED_KEY    = '277700733062711359';
+    // ── EMBEDDED KEY ────────────────────────────────────────────────────────────────
+    const EMBEDDED_KEY = '277700733062711359';
     // ─────────────────────────────────────────────────────────────────────────
 
-    const input     = document.getElementById('addressInput');
-    const btn       = document.getElementById('searchBtn');
+    const input      = document.getElementById('addressInput');
+    const btn        = document.getElementById('searchBtn');
     const resultArea = document.getElementById('resultArea');
 
-    // Allow Enter key to trigger search
     input.addEventListener('keydown', e => { if (e.key === 'Enter') lookupAddress(); });
 
     async function lookupAddress() {
@@ -441,14 +418,10 @@
 
         const data = await res.json();
 
-        if (!data || data.length === 0) {
-          showEmpty();
-          return;
-        }
+        if (!data || data.length === 0) { showEmpty(); return; }
 
         const record = data[0];
 
-        // If response has no secondaries array, show count-only result
         if (!record.secondaries || record.secondaries.length === 0) {
           showEmpty(record);
           return;
@@ -492,9 +465,9 @@
     }
 
     function showResults(record) {
-      const addr    = record.matched_address;
-      const units   = record.secondaries;
-      const count   = units.length;
+      const addr  = record.matched_address;
+      const units = record.secondaries;
+      const count = units.length;
 
       const chips = units.map((u, i) => {
         const label = [u.secondary_designator, u.secondary_number].filter(Boolean).join(' ') || u.secondary || '—';
@@ -512,13 +485,10 @@
           </div>
           <div class="units-grid">${chips}</div>
           <div class="results-footer">
-            <button class="export-btn" onclick="exportCSV()">
-              ↓ Export CSV
-            </button>
+            <button class="export-btn" onclick="exportCSV()">↓ Export CSV</button>
           </div>
         </div>`;
 
-      // Store for export
       window._lastResults = { record };
     }
 
